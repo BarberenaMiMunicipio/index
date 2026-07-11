@@ -1,3 +1,14 @@
 {
-  "items": []
+  "items": [
+    {
+      "firma": "Vecino de Barberena",
+      "estado": "revision",
+      "icono": "📢",
+      "titulo": "¿Cuántos años más tenemos que esperar para que nos arreglen el callejón?",
+      "zona": "Enfrente de canchas D'volea",
+      "relato": "\"¿Cuántos años más tenemos que esperar para que nos arreglen el callejón que está enfrente de canchas D'volea y conduce a la calle principal que va para el cementerio?\"",
+      "fecha": "10 de julio de 2026",
+      "foto": "/images/quejas/1000027112.jpg"
+    }
+  ]
 }
