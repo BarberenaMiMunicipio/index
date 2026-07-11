@@ -453,7 +453,7 @@
       const feed = document.getElementById('quejasFeed');
       if (!feed) return;
       try {
-        const res = await fetch('content/quejas.json', { cache: 'no-store' });
+        const res = await fetch('/content/quejas.json', { cache: 'no-store' });
         const data = await res.json();
         const items = (data.items || []).slice().reverse();
         if (!items.length) {
