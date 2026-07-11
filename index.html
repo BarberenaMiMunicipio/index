@@ -449,28 +449,65 @@
         </article>`;
     }
 
-    async function cargarQuejas() {
+        async function cargarQuejas() {
       const feed = document.getElementById('quejasFeed');
       if (!feed) return;
       try {
-        const res = await fetch('/content/quejas.json', { cache: 'no-store' });
+        // 1. Ruta absoluta correcta para evitar fallos en Netlify
+        const res = await fetch('/content/quejas.json');
+        if (!res.ok) throw new Error('No se pudo obtener el archivo JSON');
+        
         const data = await res.json();
-        const items = (data.items || []).slice().reverse();
-        if (!items.length) {
-          feed.outerHTML = '<p class="quejas-empty">Todavía no hay quejas publicadas. Sé el primero en reportar algo.</p>';
+        
+        // 2. Validación robusta: Si 'data' es una lista/arreglo, úsalo directamente.
+        // Si es un objeto que contiene '.items', usa ese. Si no, usa un arreglo vacío.
+        const listaQuejas = Array.isArray(data) ? data : (data.items || []);
+        
+        // 3. Volteamos el orden para que la queja más reciente aparezca primero
+        const items = listaQuejas.slice().reverse();
+
+        if (items.length === 0) {
+          feed.innerHTML = '<p class="quejas-empty">No hay quejas registradas por el momento.</p>';
           return;
         }
-        feed.innerHTML = items.map(quejaCardHTML).join('');
+
+        // 4. Inyección del contenido manteniendo intactas tus clases CSS y diseño original
+        feed.innerHTML = items.map((q, i) => {
+          const isEven = i % 2 === 0;
+          return `
+            <div class="queja ${isEven ? '' : 'queja-reverse'}">
+              <div class="queja-media">
+                <span class="icono">${q.icono || '📌'}</span>
+                <div class="caption">${q.caption || 'Reporte Verificado'}</div>
+              </div>
+              <div class="queja-body">
+                <div class="sello ${q.estado || 'sinrespuesta'}">
+                  ${q.estado === 'respondida' ? 'Resuelto' : q.estado === 'revision' ? 'En Revisión' : 'Sin Respuesta'}
+                </div>
+                <div class="queja-meta">
+                  <span class="queja-zona">${q.zona || 'Municipio'}</span>
+                  <span class="queja-fecha">${q.fecha || ''}</span>
+                </div>
+                <h3>${q.titulo || ''}</h3>
+                <p class="relato">${q.relato || ''}</p>
+                <div class="queja-firma">— ${q.firma || 'Vecino Anónimo'}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Re-activar el observador de animaciones para las nuevas tarjetas inyectadas
         const cardObs = new IntersectionObserver(entries => {
-          entries.forEach((e, i) => {
-            if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 100); cardObs.unobserve(e.target); }
-          });
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); cardObs.unobserve(e.target); } });
         }, { threshold: 0.1 });
         feed.querySelectorAll('.queja').forEach(el => cardObs.observe(el));
+        
       } catch (err) {
+        console.error(err);
         feed.outerHTML = '<p class="quejas-empty">No se pudieron cargar las quejas en este momento.</p>';
       }
     }
+    
     cargarQuejas();
 
     const els = document.querySelectorAll('.pilar, .participa-item');
